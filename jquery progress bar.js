@@ -12,9 +12,9 @@
                     'width': (500 * percentageCompleted) / 100
                 }, 3000);
 
-                $({ counter: 1 }).animate({ counter: percentageCompleted }, {
+                $({ counter: 1 }).animate({ counter: percentageCompleted }, {   <<<<<<<<<<<<<<<<<<<<<
                     duration: 3000,
-                    step: function () {
+                    step: function () {                              <<<<<<<<<<<<<<<<<<<<<<<
                         $('#innerDiv').text(Math.ceil(this.counter) + ' %');
                     }
                 })
