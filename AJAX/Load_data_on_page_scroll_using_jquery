@@ -1,0 +1,182 @@
+////////   The data will be loaded on demand as you scroll down the page :
+
+//////  SQL :
+
+Create table tblEmployee
+(
+    Id int primary key identity,  
+    Name nvarchar(50),
+    Gender nvarchar(10),
+    Salary int
+)
+GO
+
+Insert into tblEmployee values('Name 1','Male 1',100)
+Insert into tblEmployee values('Name 2','Male 2',200)
+Insert into tblEmployee values('Name 3','Male 3',300)
+Insert into tblEmployee values('Name 4','Male 4',400)
+Insert into tblEmployee values('Name 5','Male 5',500)
+
+//////  This procedure retrieves the correct set of 50 records depending on the page number. 
+
+Create procedure spGetEmployees
+@PageNumber int,
+@PageSize int
+as
+Begin
+
+    Declare @StartRow int
+    Declare @EndRow int
+
+    Set @StartRow = ((@PageNumber - 1) * @PageSize) + 1           <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    Set @EndRow = @PageNumber * @PageSize;                                        <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+
+
+    WITH RESULT AS
+    (
+     SELECT Id, Name, Gender, Salary,
+             ROW_NUMBER() OVER (ORDER BY ID ASC) AS ROWNUMBER           <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+     From    tblEmployee
+    )
+    SELECT *
+    FROM RESULT
+    WHERE ROWNUMBER BETWEEN @StartRow AND @EndRow           <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+End
+
+//////  DAL :
+
+<add name="DBCS" connectionString="server=.;database=SampleDB;integrated security=SSPI"/>
+      
+ public class Employee
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public int Salary { get; set; }
+    }
+ 
+ 
+ ////////  CONTROLLER - WEBAPI :
+
+ public void GetEmployees(int pageNumber, int pageSize)
+        {
+            List<Employee> listEmployees = new List<Employee>();
+
+            string cs = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                SqlCommand cmd = new SqlCommand("spGetEmployees", con);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter()
+                {
+                    ParameterName = "@PageNumber",
+                    Value = pageNumber
+                });
+
+                cmd.Parameters.Add(new SqlParameter()
+                {
+                    ParameterName = "@PageSize",
+                    Value = pageSize
+                });
+
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    Employee employee = new Employee();
+                    employee.ID = Convert.ToInt32(rdr["Id"]);
+                    employee.Name = rdr["Name"].ToString();
+                    employee.Gender = rdr["Gender"].ToString();
+                    employee.Salary = Convert.ToInt32(rdr["Salary"]);
+                    listEmployees.Add(employee);
+                }
+            }
+
+            JavaScriptSerializer js = new JavaScriptSerializer();
+            Context.Response.Write(js.Serialize(listEmployees));
+        }
+
+
+/////////  HTML :
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="jquery-1.11.2.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var currentPage = 1;
+            loadPageData(currentPage);
+            $(window).scroll(function () {
+                if ($(window).scrollTop() == $(document).height() - $(window).height()) {           <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+                    currentPage += 1;
+                    loadPageData(currentPage);
+                }
+            });
+
+            function loadPageData(currentPageNumber) {
+                $.ajax({
+                    url: 'EmployeeService.asmx/GetEmployees',
+                    method: 'post',
+                    dataType: "json",
+                    data: { pageNumber: currentPageNumber, pageSize: 50 },
+                    success: function (data) {
+                        var employeeTable = $('#tblEmployee tbody');
+
+                        $(data).each(function (index, emp) {                                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+                            employeeTable.append('<tr><td>' + emp.ID + '</td><td>'
+                                + emp.Name + '</td><td>' + emp.Gender
+                                + '</td><td>' + emp.Salary + '</td></tr>');
+                        });
+                    },
+                    error: function (err) {
+                        alert(err);
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body style="font-family:Arial">
+    <h1>The data will be loaded on demand as you scroll down the page</h1>
+    <table id="tblEmployee" border="1"
+           style="border-collapse:collapse; font-size:xx-large">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
