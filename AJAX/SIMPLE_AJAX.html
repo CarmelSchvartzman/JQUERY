@@ -1,0 +1,37 @@
+//////////  CHECK : https://www.w3schools.com/jquery/tryit.asp?filename=tryjquery_ajax_get
+
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+  $("button").click(function(){
+  
+  $.ajax({
+  	url:'demo_test.asp',
+    method:'get',
+    dataType:'text',  // 'json' 'xml'        // IF YOU ERR HERE, YOU WILL NOT GET ERROR MESSAGE, SIMPLY DO NOT WORK
+    contentType:'application/json;charset:utf-8',
+    success: (data,status,xhr)=>{
+    	alert(xhr.status);
+    	alert(data);
+    },
+    error: (e)=>{alert(e.message);}
+  
+  
+  });
+  
+    $.get("demo_test.asp", function(data, status){
+      alert("Data: " + data + "\nStatus: " + status);
+    });
+  });
+});
+</script>
+</head>
+<body>
+
+<button>Send an HTTP GET request to a page and get the result back</button>
+
+</body>
+</html>
