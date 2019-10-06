@@ -1,4 +1,4 @@
-/* example :
+/* DEEP CLONING example : 
     let orig = {id:3,name:'dan'};
     let clone = {};
     $.extend(true, clone,orig);      <<<<<<<<<<<<   " TRUE " MUST BE INCLUDED !!! SEE : https://api.jquery.com/jquery.extend/
