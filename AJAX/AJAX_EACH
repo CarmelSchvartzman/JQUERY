@@ -1,0 +1,55 @@
+  $.ajax({
+                url: 'DataService.asmx/GetContinents',
+                method: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    continentsDDL.append($('<option/>', { value: -1, text: 'Select Continent' }));                  
+                    continentsDDL.prop('disabled', false);
+
+                    $(data).each(function (index, item) {
+                        continentsDDL.append($('<option/>', { value: item.Id, text: item.Name }));
+                    });
+                },
+                error: function (err) {
+                    console.error(err);
+                }
+            });
+            
+            
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////// DATUM :   http://csharp-video-tutorials.blogspot.com/2015/07/cascading-dropdownlist-using-jquery-and.html
+
+ public void GetContinents()
+        {
+            string cs = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            List<Continent> continents = new List<Continent>();
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                SqlCommand cmd = new SqlCommand("spGetContinents", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    Continent continent = new Continent();
+                    continent.Id = Convert.ToInt32(rdr["Id"]);
+                    continent.Name = rdr["Name"].ToString();
+                    continents.Add(continent);
+                }
+            }
+            JavaScriptSerializer js = new JavaScriptSerializer();
+            Context.Response.Write(js.Serialize(continents));
+        }
